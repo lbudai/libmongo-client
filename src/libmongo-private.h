@@ -39,6 +39,7 @@ struct _mongo_connection
 {
   gint fd; /**< The file descriptor associated with the connection. */
   gint32 request_id; /**< The last sent command's requestID. */
+  int last_errno; /**<The last error on connection. */
 };
 
 /** @internal Mongo Replica Set object. */

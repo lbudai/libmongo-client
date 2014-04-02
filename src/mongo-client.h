@@ -109,6 +109,17 @@ gint32 mongo_connection_get_requestid (const mongo_connection *conn);
  */
 gboolean mongo_connection_set_timeout (mongo_connection *conn, gint timeout);
 
+/** Get the last errno from a MongoDB connection.
+ *
+ * Retrieves the last errorno from MongoDB connection.
+ *
+ * @param conn is the connection to work with.
+ *
+ * @returns errno
+ */
+int mongo_connection_get_last_errno (mongo_connection *conn);
+
+
 /** @} */
 
 G_END_DECLS

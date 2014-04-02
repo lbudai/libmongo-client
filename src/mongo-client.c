@@ -168,7 +168,7 @@ mongo_disconnect (mongo_connection *conn)
     close (conn->fd);
 
   g_free (conn);
-  errno = 0;
+  conn->last_errno = errno = 0;
 }
 
 gboolean
@@ -187,13 +187,13 @@ mongo_packet_send (mongo_connection *conn, const mongo_packet *p)
     }
   if (!p)
     {
-      errno = EINVAL;
+      conn->last_errno = errno = EINVAL;
       return FALSE;
     }
 
   if (conn->fd < 0)
     {
-      errno = EBADF;
+      conn->last_errno = errno = EBADF;
       return FALSE;
     }
 
@@ -202,8 +202,11 @@ mongo_packet_send (mongo_connection *conn, const mongo_packet *p)
 
   data_size = mongo_wire_packet_get_data (p, &data);
 
-  if (data_size == -1)
-    return FALSE;
+  if (data_size == -1) //TODO
+    {
+      conn->last_errno = errno;
+      return FALSE;
+    }
 
   iov[0].iov_base = (void *)&h;
   iov[0].iov_len = sizeof (h);
@@ -215,7 +218,10 @@ mongo_packet_send (mongo_connection *conn, const mongo_packet *p)
   msg.msg_iovlen = 2;
 
   if (sendmsg (conn->fd, &msg, MSG_NOSIGNAL) != (gint32)sizeof (h) + data_size)
-    return FALSE;
+    {
+      conn->last_errno = errno;
+      return FALSE;
+    }
 
   conn->request_id = h.id;
 
@@ -238,7 +244,7 @@ mongo_packet_recv (mongo_connection *conn)
 
   if (conn->fd < 0)
     {
-      errno = EBADF;
+      conn->last_errno = errno = EBADF;
       return NULL;
     }
 
@@ -246,6 +252,7 @@ mongo_packet_recv (mongo_connection *conn)
   if (recv (conn->fd, &h, sizeof (mongo_packet_header),
             MSG_NOSIGNAL | MSG_WAITALL) != sizeof (mongo_packet_header))
     {
+      conn->last_errno = errno;
       return NULL;
     }
 
@@ -261,7 +268,7 @@ mongo_packet_recv (mongo_connection *conn)
       int e = errno;
 
       mongo_wire_packet_free (p);
-      errno = e;
+      conn->last_errno = errno = e;
       return NULL;
     }
 
@@ -273,7 +280,7 @@ mongo_packet_recv (mongo_connection *conn)
 
       g_free (data);
       mongo_wire_packet_free (p);
-      errno = e;
+      conn->last_errno = errno = e;
       return NULL;
     }
 
@@ -283,7 +290,7 @@ mongo_packet_recv (mongo_connection *conn)
 
       g_free (data);
       mongo_wire_packet_free (p);
-      errno = e;
+      conn->last_errno = errno = e;
       return NULL;
     }
 
@@ -316,7 +323,7 @@ mongo_connection_set_timeout (mongo_connection *conn, gint timeout)
     }
   if (timeout < 0)
     {
-      errno = ERANGE;
+      conn->last_errno = errno = ERANGE;
       return FALSE;
     }
 
@@ -324,8 +331,20 @@ mongo_connection_set_timeout (mongo_connection *conn, gint timeout)
   tv.tv_usec = (timeout % 1000) * 1000;
 
   if (setsockopt (conn->fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof (tv)) == -1)
-    return FALSE;
+    {
+      conn->last_errno = errno;
+      return FALSE;
+    }
   if (setsockopt (conn->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof (tv)) == -1)
-    return FALSE;
+    {
+      conn->last_errno = errno;
+      return FALSE;
+    }
   return TRUE;
+}
+
+int
+mongo_connection_get_last_errno (mongo_connection *conn)
+{
+  return conn->last_errno;
 }
