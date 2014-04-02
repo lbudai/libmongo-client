@@ -805,6 +805,13 @@ _mongo_sync_cmd_verify_result (mongo_sync_connection *conn,
   return res;
 }
 
+static void
+_set_last_error (mongo_sync_connection *conn, int err)
+{
+  g_free (conn->last_error);
+  conn->last_error = g_strdup(strerror(err));
+}
+
 gboolean
 mongo_sync_cmd_update (mongo_sync_connection *conn,
                        const gchar *ns,
@@ -883,7 +890,10 @@ mongo_sync_cmd_insert_n (mongo_sync_connection *conn,
         return FALSE;
 
       if (!_mongo_sync_packet_send (conn, p, TRUE, TRUE))
-        return FALSE;
+        {
+          _set_last_error (conn, errno);
+          return FALSE;
+        }
 
       if (!_mongo_sync_cmd_verify_result (conn, ns))
         return FALSE;
@@ -1330,6 +1340,7 @@ mongo_sync_cmd_get_last_error (mongo_sync_connection *conn,
 
       bson_free (cmd);
       errno = e;
+      _set_last_error (conn, e);
       return FALSE;
     }
   bson_free (cmd);
@@ -1340,6 +1351,7 @@ mongo_sync_cmd_get_last_error (mongo_sync_connection *conn,
 
       mongo_wire_packet_free (p);
       errno = e;
+      _set_last_error (conn, e);
       return FALSE;
     }
   mongo_wire_packet_free (p);
@@ -1351,6 +1363,7 @@ mongo_sync_cmd_get_last_error (mongo_sync_connection *conn,
 
       bson_free (cmd);
       errno = e;
+      _set_last_error (conn, e);
       return FALSE;
     }
   bson_free (cmd);
@@ -1360,7 +1373,7 @@ mongo_sync_cmd_get_last_error (mongo_sync_connection *conn,
   else
     {
       g_free (conn->last_error);
-      conn->last_error = NULL;
+      conn->last_error = g_strdup(*error);
     }
 
   return TRUE;
@@ -2074,4 +2087,10 @@ mongo_sync_connect_recovery_cache (mongo_sync_conn_recovery_cache *cache,
     c = _recovery_cache_pick_connect_from_list (cache, cache->rs.hosts, slaveok);
 
   return c;
+}
+
+const gchar *
+mongo_sync_conn_get_last_error (mongo_sync_connection *conn)
+{
+  return conn->last_error;
 }
