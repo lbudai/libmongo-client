@@ -603,6 +603,20 @@ gboolean mongo_sync_cmd_index_drop (mongo_sync_connection *conn,
 gboolean mongo_sync_cmd_index_drop_all (mongo_sync_connection *conn,
                                         const gchar *ns);
 
+/** Get the last errno from a MongoDB connection.
+ *
+ * Retrieves the last errno from MongoDB connection.
+ *
+ * @param conn is the connection to work with.
+ * @param errno is a pointer to an integer where the errno 
+ *        value will be written to
+ *
+ * @returns TRUE on success, FALSE otherwise
+ *          (only when conn is NULL)
+ */
+gboolean mongo_sync_conn_get_last_errno (mongo_sync_connection *conn, int *err);
+
+
 /** @} */
 
 G_END_DECLS

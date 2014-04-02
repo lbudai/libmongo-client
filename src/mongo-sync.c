@@ -2075,3 +2075,14 @@ mongo_sync_connect_recovery_cache (mongo_sync_conn_recovery_cache *cache,
 
   return c;
 }
+
+gboolean
+mongo_sync_conn_get_last_error (mongo_sync_connection *conn, int *err)
+{
+  if (!conn)
+    return FALSE ;
+
+  *err = mongo_connection_get_last_errno(&conn->super);
+
+  return TRUE;
+}
