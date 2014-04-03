@@ -603,6 +603,18 @@ gboolean mongo_sync_cmd_index_drop (mongo_sync_connection *conn,
 gboolean mongo_sync_cmd_index_drop_all (mongo_sync_connection *conn,
                                         const gchar *ns);
 
+
+/** Get name of the server where the client is connected to
+ *
+ * @param conn is the connection to the server
+ * @param address is a pointer to a string variable that will hold the
+ * server name.
+ *
+ * @returns TRUE if the servername is available, FALSE otherwise
+            (ie. broken connection, invalid input parameter(s), etc...) 
+ */
+gboolean mongo_sync_conn_get_server_name(mongo_sync_connection *conn,
+                                         gchar **addr);
 /** @} */
 
 G_END_DECLS

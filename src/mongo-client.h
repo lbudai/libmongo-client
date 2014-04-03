@@ -109,6 +109,18 @@ gint32 mongo_connection_get_requestid (const mongo_connection *conn);
  */
 gboolean mongo_connection_set_timeout (mongo_connection *conn, gint timeout);
 
+/** Get name of the connected peer
+ *
+ * @param conn is the connection
+ * @param address is a pointer to a string variable that will hold the
+ * peername.
+ *
+ * @returns TRUE if the peername is available, FALSE otherwise
+            (ie. broken connection, invalid input parameter(s), etc...) 
+ */
+gboolean mongo_sync_conn_get_server_name (mongo_sync_connection *conn,
+                                          gchar **addr);
+
 /** @} */
 
 G_END_DECLS

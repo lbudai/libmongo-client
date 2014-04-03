@@ -329,3 +329,26 @@ mongo_connection_set_timeout (mongo_connection *conn, gint timeout)
     return FALSE;
   return TRUE;
 }
+
+gboolean
+mongo_sync_conn_get_server_name(mongo_connection *conn,
+                                gchar **addr)
+{
+  char addrstr[4096];
+  
+  if (!conn)
+    {
+      errno = ENOTCONN;
+      return FALSE;
+    }
+
+  if (!addr)
+    {
+      errno = EINVAL;
+      return FALSE;
+    }
+
+  if (getpeername (conn->fd, ));
+
+  return TRUE;
+}

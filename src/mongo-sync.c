@@ -2078,3 +2078,22 @@ mongo_sync_connect_recovery_cache (mongo_sync_conn_recovery_cache *cache,
 
   return c;
 }
+
+gboolean
+mongo_sync_conn_get_server_name(mongo_sync_connection *conn,
+                                gchar **addr)
+{
+  if (!conn)
+    {
+      errno = ENOTCONN;
+      return FALSE;
+    }
+
+  if (!addr)
+    {
+      errno = EINVAL;
+      return FALSE;
+    }
+
+  return mongo_connection_getpeername(&conn->super, addr);
+}
